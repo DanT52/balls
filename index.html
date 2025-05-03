@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Ball Simulation</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="script.js" defer></script>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="controls">
+        <h3>Physics Simulation</h3>
+        <div>
+            <label for="num-balls">Number of balls:</label>
+            <input type="number" id="num-balls" min="2" max="30" value="10">
+        </div>
+        <div>
+            <label for="ball-size">Main ball size:</label>
+            <input type="number" id="ball-size" min="20" max="100" value="50">
+        </div>
+        <div>
+            <label for="launch-speed">Launch speed:</label>
+            <input type="number" id="launch-speed" min="1" max="20" value="10">
+        </div>
+        <div>
+            <label for="gravity">Gravity:</label>
+            <input type="number" id="gravity" min="0.1" max="2" value="0.5" step="0.1">
+        </div>
+        <div>
+            <label for="elasticity">Elasticity:</label>
+            <input type="number" id="elasticity" min="0.1" max="0.9" value="0.7" step="0.1">
+        </div>
+        <div>
+            <label for="friction">Friction:</label>
+            <input type="number" id="friction" min="0" max="0.1" value="0.03" step="0.01">
+        </div>
+        <div>
+            <label for="main-ball-color">Main ball color:</label>
+            <input type="color" id="main-ball-color" value="#FF5252">
+        </div>
+        <div>
+            <label for="small-ball-color">Small balls color:</label>
+            <input type="color" id="small-ball-color" value="#448AFF">
+        </div>
+        <div class="dark-mode-container">
+            <label for="dark-mode-toggle">Dark Mode:</label>
+            <label class="switch">
+                <input type="checkbox" id="dark-mode-toggle" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="slider-container">
+            <label for="slow-motion">Slow Motion:</label>
+            <input type="range" id="slow-motion" min="0.1" max="1.0" value="1.0" step="0.1">
+            <span id="slow-motion-value" class="slider-value">1.0x</span>
+        </div>
+        <button id="launch-btn">Launch Ball</button>
+        <button id="reset-btn">Reset</button>
+    </div>
+</body>
+</html>
