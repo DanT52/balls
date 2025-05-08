@@ -33,6 +33,9 @@ export function setupUIControls() {
     slowMotionSlider = document.getElementById('slow-motion');
     slowMotionValue = document.getElementById('slow-motion-value');
     
+    // Initialize dark mode first to prevent white flash
+    initializeDarkMode();
+    
     // Load saved settings if they exist
     loadSavedSettings();
     
@@ -57,6 +60,14 @@ export function setupUIControls() {
     });
 }
 
+// Initialize dark mode with a default of true (dark)
+function initializeDarkMode() {
+    const savedDarkMode = localStorage.getItem('ballsSimulationDarkMode');
+    const isDark = savedDarkMode === null ? true : savedDarkMode === 'true';
+    darkModeToggle.checked = isDark;
+    setDarkMode(isDark);
+}
+
 function toggleDarkMode(e) {
     const isDark = e.target.checked;
     setDarkMode(isDark);
@@ -66,7 +77,6 @@ function toggleDarkMode(e) {
 // Update the displayed value for slow motion
 function updateSlowMotionDisplay() {
     const value = slowMotionSlider.value;
-    console.log(value)
     const displayValue = parseFloat((value)).toFixed(1) + 'x';
     slowMotionValue.textContent = displayValue;
 }
@@ -90,13 +100,7 @@ export function getUIValues() {
 // Load saved settings from localStorage
 function loadSavedSettings() {
     try {
-        // Load dark mode setting
-        const savedDarkMode = localStorage.getItem('ballsSimulationDarkMode');
-        if (savedDarkMode !== null) {
-            const isDark = savedDarkMode === 'true';
-            darkModeToggle.checked = isDark;
-            setDarkMode(isDark);
-        }
+        // Dark mode is now handled by initializeDarkMode function
         
         // Load other simulation settings
         const savedSettings = localStorage.getItem('ballsSimulationSettings');
