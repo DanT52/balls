@@ -17,6 +17,9 @@ let slowMotionSlider;
 let slowMotionValue;
 let toggleSettingsBtn;
 let controlsPanel;
+let launchSideSelect;
+let launchAngleInput;
+let launchAngleValue;
 
 // Setup UI controls and event listeners
 export function setupUIControls() {
@@ -36,6 +39,38 @@ export function setupUIControls() {
     slowMotionValue = document.getElementById('slow-motion-value');
     toggleSettingsBtn = document.getElementById('toggle-settings');
     controlsPanel = document.querySelector('.controls.collapsible');
+    launchSideSelect = document.getElementById('launch-side');
+    launchAngleInput = document.getElementById('launch-angle');
+    launchAngleValue = document.getElementById('launch-angle-value');
+    
+    // Initialize components with default values in case they don't exist
+    if (!launchSideSelect) {
+        console.warn("Launch side select not found in DOM");
+        // Create a default launch side select if not found
+        const controlsBody = document.querySelector('.controls-body');
+        if (controlsBody && !document.getElementById('launch-side')) {
+            const launchSideDiv = document.createElement('div');
+            launchSideDiv.innerHTML = `
+                <label for="launch-side">Launch side:</label>
+                <select id="launch-side">
+                    <option value="left" selected>Left</option>
+                    <option value="right">Right</option>
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                </select>
+            `;
+            const launchSpeedElement = document.getElementById('launch-speed');
+            if (launchSpeedElement) {
+                launchSpeedElement.parentNode.after(launchSideDiv);
+            } else {
+                controlsBody.appendChild(launchSideDiv);
+            }
+            launchSideSelect = document.getElementById('launch-side');
+        }
+    }
+    
+    if (!launchAngleInput) console.warn("Launch angle input not found in DOM");
+    if (!launchAngleValue) console.warn("Launch angle value not found in DOM");
     
     // Initialize dark mode first to prevent white flash
     initializeDarkMode();
@@ -52,12 +87,19 @@ export function setupUIControls() {
     // Update slow motion display value
     slowMotionSlider.addEventListener('input', updateSlowMotionDisplay);
     
+    // Update launch angle display value
+    if (launchAngleInput) {
+        launchAngleInput.addEventListener('input', updateLaunchAngleDisplay);
+        // Initialize the display value
+        updateLaunchAngleDisplay();
+    }
+    
     // Add change listeners to save settings
     const inputElements = [
         numBallsInput, ballSizeInput, launchSpeedInput,
         gravityInput, elasticityInput, frictionInput,
         mainBallColorPicker, smallBallColorPicker,
-        slowMotionSlider
+        slowMotionSlider, launchSideSelect, launchAngleInput
     ];
     
     inputElements.forEach(input => {
@@ -110,20 +152,32 @@ function updateSlowMotionDisplay() {
     slowMotionValue.textContent = displayValue;
 }
 
+// Update the displayed value for launch angle
+function updateLaunchAngleDisplay() {
+    const value = launchAngleInput.value;
+    let sign = parseInt(value) > 0 ? "+" : ""; // Add plus sign for positive values for clarity
+    if (parseInt(value) === 0) sign = ""; // No sign for zero
+    launchAngleValue.textContent = sign + value + '°';
+}
+
 // Get current values from UI controls
 export function getUIValues() {
-    return {
-        numBalls: parseInt(numBallsInput.value),
-        ballSize: parseInt(ballSizeInput.value),
-        launchSpeed: parseInt(launchSpeedInput.value),
-        gravity: parseFloat(gravityInput.value),
-        elasticity: parseFloat(elasticityInput.value),
-        friction: parseFloat(frictionInput.value),
-        mainBallColor: mainBallColorPicker.value,
-        smallBallColor: smallBallColorPicker.value,
-        darkMode: darkModeToggle.checked,
-        slowMotionFactor: parseFloat(slowMotionSlider.value)
+    const values = {
+        numBalls: parseInt(numBallsInput?.value || 70),
+        ballSize: parseInt(ballSizeInput?.value || 100),
+        launchSpeed: parseInt(launchSpeedInput?.value || 15),
+        gravity: parseFloat(gravityInput?.value || 0.3),
+        elasticity: parseFloat(elasticityInput?.value || 0.6),
+        friction: parseFloat(frictionInput?.value || 0.02),
+        mainBallColor: mainBallColorPicker?.value || '#FF5252',
+        smallBallColor: smallBallColorPicker?.value || '#448AFF',
+        darkMode: darkModeToggle?.checked || true,
+        slowMotionFactor: parseFloat(slowMotionSlider?.value || 0.5),
+        launchSide: launchSideSelect?.value || 'left',
+        launchAngle: parseInt(launchAngleInput?.value || 0)
     };
+    
+    return values;
 }
 
 // Load saved settings from localStorage
@@ -136,22 +190,31 @@ function loadSavedSettings() {
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
             
-            // Apply saved values to UI elements
-            if (settings.numBalls) numBallsInput.value = settings.numBalls;
-            if (settings.ballSize) ballSizeInput.value = settings.ballSize;
-            if (settings.launchSpeed) launchSpeedInput.value = settings.launchSpeed;
-            if (settings.gravity) gravityInput.value = settings.gravity;
-            if (settings.elasticity) elasticityInput.value = settings.elasticity;
-            if (settings.friction) frictionInput.value = settings.friction;
-            if (settings.mainBallColor) mainBallColorPicker.value = settings.mainBallColor;
-            if (settings.smallBallColor) smallBallColorPicker.value = settings.smallBallColor;
-            if (settings.slowMotionFactor) {
+            // Apply saved values to UI elements with null checks
+            if (settings.numBalls && numBallsInput) numBallsInput.value = settings.numBalls;
+            if (settings.ballSize && ballSizeInput) ballSizeInput.value = settings.ballSize;
+            if (settings.launchSpeed && launchSpeedInput) launchSpeedInput.value = settings.launchSpeed;
+            if (settings.gravity && gravityInput) gravityInput.value = settings.gravity;
+            if (settings.elasticity && elasticityInput) elasticityInput.value = settings.elasticity;
+            if (settings.friction && frictionInput) frictionInput.value = settings.friction;
+            if (settings.mainBallColor && mainBallColorPicker) mainBallColorPicker.value = settings.mainBallColor;
+            if (settings.smallBallColor && smallBallColorPicker) smallBallColorPicker.value = settings.smallBallColor;
+            if (settings.slowMotionFactor && slowMotionSlider) {
                 slowMotionSlider.value = settings.slowMotionFactor;
                 updateSlowMotionDisplay();
+            }
+            if (settings.launchSide && launchSideSelect) launchSideSelect.value = settings.launchSide;
+            if (settings.launchAngle !== undefined && launchAngleInput) {
+                // Check if the saved value is in the old range (greater than 90)
+                if (settings.launchAngle > 90) {
+                    // Convert from old range to new range
+                    settings.launchAngle = settings.launchAngle - 180;
+                }
+                launchAngleInput.value = settings.launchAngle;
+                updateLaunchAngleDisplay();
             }
         }
     } catch (error) {
         console.error('Error loading saved settings:', error);
-        // Continue with default values if there's an error
     }
 }

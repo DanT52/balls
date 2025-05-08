@@ -3,12 +3,37 @@ import { canvas, ctx, balls, mainBall, animationId, setMainBall, setAnimationId,
 import { getRandomColor } from './colorUtils.js';
 import { getUIValues } from './uiControls.js';
 
-// Create the main ball
+// Create the main ball based on launch side
 export function createMainBall() {
-    const { ballSize, mainBallColor } = getUIValues();
+    const { ballSize, mainBallColor, launchSide } = getUIValues();
     const radius = parseInt(ballSize);
     const color = mainBallColor || '#FF5252';
-    return new Ball(radius * 2, canvas.height / 2, radius, color);
+    let x, y;
+    
+    // Position the ball at the appropriate edge based on launch side
+    switch (launchSide || 'left') {
+        case 'left':
+            x = radius;
+            y = canvas.height / 2;
+            break;
+        case 'right':
+            x = canvas.width - radius;
+            y = canvas.height / 2;
+            break;
+        case 'top':
+            x = canvas.width / 2;
+            y = radius;
+            break;
+        case 'bottom':
+            x = canvas.width / 2;
+            y = canvas.height - radius;
+            break;
+        default:
+            x = radius;
+            y = canvas.height / 2;
+    }
+    
+    return new Ball(x, y, radius, color);
 }
 
 // Break the main ball into smaller ones
@@ -81,15 +106,37 @@ export function animate(timestamp = 0) {
 
 // Physics update function
 function updatePhysics(deltaTime) {
-    const { gravity, friction, elasticity } = getUIValues();
+    const { gravity, friction, elasticity, launchSide } = getUIValues();
     const currentMainBall = mainBall;
     
     if (currentMainBall) {
         // Update main ball physics with delta time
         currentMainBall.update(gravity, friction, canvas.width, canvas.height, elasticity, deltaTime);
         
-        // Check if main ball reaches right side of screen
-        if (currentMainBall.x + currentMainBall.radius > canvas.width * .99) {
+        // Get the starting wall based on launch side
+        const startWall = launchSide || 'left';
+        
+        // Check if main ball reaches any edge of the screen EXCEPT its starting wall
+        let reachedEdge = false;
+        
+        // Define edge thresholds with a small buffer (1% of canvas size)
+        const rightEdgeThreshold = canvas.width * 0.99;
+        const leftEdgeThreshold = canvas.width * 0.01;
+        const bottomEdgeThreshold = canvas.height * 0.99;
+        const topEdgeThreshold = canvas.height * 0.01;
+        
+        // Check walls based on which was NOT the starting wall
+        if (startWall !== 'right' && currentMainBall.x + currentMainBall.radius > rightEdgeThreshold) {
+            reachedEdge = true; // Hit right wall (and didn't start from right)
+        } else if (startWall !== 'left' && currentMainBall.x - currentMainBall.radius < leftEdgeThreshold) {
+            reachedEdge = true; // Hit left wall (and didn't start from left)
+        } else if (startWall !== 'bottom' && currentMainBall.y + currentMainBall.radius > bottomEdgeThreshold) {
+            reachedEdge = true; // Hit bottom wall (and didn't start from bottom)
+        } else if (startWall !== 'top' && currentMainBall.y - currentMainBall.radius < topEdgeThreshold) {
+            reachedEdge = true; // Hit top wall (and didn't start from top)
+        }
+        
+        if (reachedEdge) {
             breakMainBall();
         }
     }
@@ -125,26 +172,73 @@ function renderScene() {
     }
 }
 
-// Launch the main ball
+// Launch the main ball with angle and side
 export function launchMainBall() {
-    const { launchSpeed } = getUIValues();
+    // Clear any existing animation to avoid needing double clicks
+    if (isSimulationRunning && animationId) {
+        cancelAnimationFrame(animationId);
+    }
     
-    // Create a new main ball even if simulation is already running
-    // (Replaces existing main ball if there is one, but keeps small balls)
+    const { launchSpeed, launchSide, launchAngle } = getUIValues();
+    
+    // Create a new main ball
     if (mainBall) {
         setMainBall(null); // Remove reference to the old main ball
     }
     
-    // If simulation is not running, start it
-    if (!isSimulationRunning) {
-        setSimulationRunning(true);
-        animate();
-    }
+    // Always consider simulation to be starting fresh
+    setSimulationRunning(true);
     
     // Create and launch new main ball
     const newMainBall = createMainBall();
     setMainBall(newMainBall);
-    newMainBall.vx = launchSpeed;
+    
+    if (!newMainBall) {
+        console.error("Failed to create main ball");
+        return;
+    }
+    
+    // Store the launch side on the ball object for reference
+    newMainBall.launchSide = launchSide || 'left';
+    
+    // Convert angle from degrees to radians
+    // Now angle range is -90 to 90 degrees: 
+    // 0° is straight into canvas, negative is up, positive is down
+    const angleRad = (launchAngle * Math.PI) / 180;
+    
+    // Apply velocity based on side and angle
+    const actualSpeed = parseInt(launchSpeed) || 10;
+    
+    switch (launchSide || 'left') {
+        case 'left':
+            // From left: 0° is right, -90° is up, 90° is down
+            newMainBall.vx = actualSpeed * Math.cos(angleRad);
+            newMainBall.vy = actualSpeed * Math.sin(angleRad);
+            break;
+        case 'right':
+            // From right: 0° is left, -90° is up, 90° is down
+            newMainBall.vx = -actualSpeed * Math.cos(angleRad);
+            newMainBall.vy = actualSpeed * Math.sin(angleRad);
+            break;
+        case 'top':
+            // From top: 0° is down, -90° is left, 90° is right
+            newMainBall.vx = actualSpeed * Math.sin(angleRad);
+            newMainBall.vy = actualSpeed * Math.cos(angleRad);
+            break;
+        case 'bottom':
+            // From bottom: 0° is up, -90° is left, 90° is right
+            newMainBall.vx = actualSpeed * Math.sin(angleRad);
+            newMainBall.vy = -actualSpeed * Math.cos(angleRad);
+            break;
+        default:
+            // Default to left side launch
+            newMainBall.vx = actualSpeed;
+            newMainBall.vy = 0;
+    }
+    
+    // Start the animation immediately (no need for double click)
+    lastTimestamp = 0; // Reset timestamp
+    animate();
 }
 
 // Reset the simulation
