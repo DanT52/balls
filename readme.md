@@ -1,6 +1,6 @@
 #todo
 - 2 balls colliding
-- explosion force settings
+- make small balls light up on collisions
 
 presets 
     default presets
