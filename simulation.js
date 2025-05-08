@@ -22,7 +22,7 @@ export function breakMainBall() {
     
     // Energy distribution factor - we'll distribute only part of the energy
     // to ensure we don't create excess energy
-    const energyFactor = 0.85;
+    const energyFactor = 0.4;
     
     for (let i = 0; i < numBalls; i++) {
         // Create balls in a circle around where the main ball was
@@ -52,43 +52,41 @@ export function breakMainBall() {
     setMainBall(null);
 }
 
-// Animation variables
 let lastTimestamp = 0;
-let slowMotionAccumulator = 0;
 
-// Animation loop
 export function animate(timestamp = 0) {
     const { slowMotionFactor } = getUIValues();
+
+    if (!lastTimestamp) lastTimestamp = timestamp;
     
-    // Calculate time delta
-    const deltaTime = timestamp - lastTimestamp;
+    // Calculate delta time in seconds
+    let deltaTime = (timestamp - lastTimestamp) / 1000;
     lastTimestamp = timestamp;
     
-    // We accumulate time until we have enough to perform a physics update
-    slowMotionAccumulator += deltaTime;
-    const timeStep = 1000 / 60; // Target 60 updates per second
-    const slowedTimeStep = timeStep * slowMotionFactor; // Invert the factor for correct behavior
+    // Cap deltaTime to prevent large jumps after tab inactivity
+    deltaTime = Math.min(deltaTime, 0.1);
     
-    // Only update physics if enough time has accumulated
-    if (slowMotionAccumulator >= slowedTimeStep) {
-        slowMotionAccumulator = 0; // Reset accumulator
-        updatePhysics(deltaTime);
-    }
+    // Apply slow motion factor
+    const effectiveDelta = deltaTime * slowMotionFactor;
     
-    // Always render the current state
+    // Update physics with the scaled delta time
+    updatePhysics(effectiveDelta);
+    
+    // Render the current state
     renderScene();
-    
+
     const id = requestAnimationFrame(animate);
     setAnimationId(id);
 }
 
-// Physics update function (separated from rendering)
+// Physics update function
 function updatePhysics(deltaTime) {
     const { gravity, friction, elasticity } = getUIValues();
     const currentMainBall = mainBall;
     
     if (currentMainBall) {
-        currentMainBall.update(gravity, friction, canvas.width, canvas.height, elasticity);
+        // Update main ball physics with delta time
+        currentMainBall.update(gravity, friction, canvas.width, canvas.height, elasticity, deltaTime);
         
         // Check if main ball reaches right side of screen
         if (currentMainBall.x + currentMainBall.radius > canvas.width * 0.8) {
@@ -96,9 +94,9 @@ function updatePhysics(deltaTime) {
         }
     }
     
-    // Always update all small balls (even when main ball is present)
+    // Update all small balls
     for (let i = 0; i < balls.length; i++) {
-        balls[i].update(gravity, friction, canvas.width, canvas.height, elasticity);
+        balls[i].update(gravity, friction, canvas.width, canvas.height, elasticity, deltaTime);
         
         // Check collisions with other balls
         for (let j = i + 1; j < balls.length; j++) {
@@ -112,18 +110,18 @@ function updatePhysics(deltaTime) {
     }
 }
 
-// Rendering function (separated from physics)
+// Rendering function
 function renderScene() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw main ball if it exists
+
+    // Main ball
     if (mainBall) {
         mainBall.draw();
     }
-    
-    // Draw all small balls
-    for (let i = 0; i < balls.length; i++) {
-        balls[i].draw();
+
+    // Other balls
+    for (const ball of balls) {
+        ball.draw();
     }
 }
 
@@ -161,7 +159,6 @@ export function resetSimulation() {
     
     // Reset animation variables
     lastTimestamp = 0;
-    slowMotionAccumulator = 0;
 }
 
 // Save current simulation settings to localStorage

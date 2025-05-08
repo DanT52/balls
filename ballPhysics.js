@@ -43,16 +43,20 @@ export class Ball {
     }
 
     update(gravity, friction, canvasWidth, canvasHeight, elasticity, deltaTime) {
+        // Normalize gravity to be time-dependent
+        const gravityStep = gravity * deltaTime * 60; // Scale to maintain behavior at 60fps
+        
         // Apply gravity
-        this.vy += gravity;
+        this.vy += gravityStep;
         
-        // Apply friction
-        this.vx *= (1 - friction);
-        this.vy *= (1 - friction);
+        // Apply friction (scale for time-dependence)
+        const frictionFactor = Math.pow(1 - friction, deltaTime * 60);
+        this.vx *= frictionFactor;
+        this.vy *= frictionFactor;
         
-        // Update position
-        this.x += this.vx;
-        this.y += this.vy;
+        // Update position (scale velocity by delta time)
+        this.x += this.vx * deltaTime * 60;
+        this.y += this.vy * deltaTime * 60;
         
         // Bounce off walls
         if (this.x - this.radius < 0) {
@@ -73,13 +77,14 @@ export class Ball {
     }
 }
 
-// Check collision between two balls - keep the physics part
+// Check collision between two balls
 export function checkCollision(ball1, ball2, elasticity) {
     const dx = ball2.x - ball1.x;
     const dy = ball2.y - ball1.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    const minDistance = ball1.radius + ball2.radius;
     
-    if (distance < ball1.radius + ball2.radius) {
+    if (distance < minDistance) {
         // Calculate collision normal
         const nx = dx / distance;
         const ny = dy / distance;
@@ -97,25 +102,34 @@ export function checkCollision(ball1, ball2, elasticity) {
         // Calculate restitution (elasticity)
         const e = elasticity;
         
-        // Calculate impulse scalar - corrected formula for conservation of momentum
+        // Calculate impulse scalar
         const j = -(1 + e) * velocityAlongNormal / 
                    (1/ball1.mass + 1/ball2.mass);
         
         // Apply impulse
-        ball1.vx -= (j * nx) / ball1.mass;
-        ball1.vy -= (j * ny) / ball1.mass;
-        ball2.vx += (j * nx) / ball2.mass;
-        ball2.vy += (j * ny) / ball2.mass;
+        const impulseX = j * nx;
+        const impulseY = j * ny;
+        
+        ball1.vx -= impulseX / ball1.mass;
+        ball1.vy -= impulseY / ball1.mass;
+        ball2.vx += impulseX / ball2.mass;
+        ball2.vy += impulseY / ball2.mass;
         
         // Move balls apart to prevent sticking
-        const overlap = (ball1.radius + ball2.radius - distance) / 2;
-        const moveX = overlap * nx;
-        const moveY = overlap * ny;
+        const overlap = (minDistance - distance);
+        const percent = 0.8; // Correction percentage
+        const correctionX = percent * overlap * nx;
+        const correctionY = percent * overlap * ny;
         
-        ball1.x -= moveX;
-        ball1.y -= moveY;
-        ball2.x += moveX;
-        ball2.y += moveY;
+        // Weight correction by inverse mass
+        const totalMass = ball1.mass + ball2.mass;
+        const ball1Ratio = ball2.mass / totalMass;
+        const ball2Ratio = ball1.mass / totalMass;
+        
+        ball1.x -= correctionX * ball1Ratio;
+        ball1.y -= correctionY * ball1Ratio;
+        ball2.x += correctionX * ball2Ratio; 
+        ball2.y += correctionY * ball2Ratio;
         
         return true;
     }

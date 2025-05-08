@@ -67,7 +67,7 @@ function toggleDarkMode(e) {
 function updateSlowMotionDisplay() {
     const value = slowMotionSlider.value;
     console.log(value)
-    const displayValue = parseFloat((1/value)/10).toFixed(1) + 'x';
+    const displayValue = parseFloat((value)).toFixed(1) + 'x';
     slowMotionValue.textContent = displayValue;
 }
 
