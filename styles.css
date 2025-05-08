@@ -1,105 +1,201 @@
+:root {
+    --bg-color-light: #f5f5f5;
+    --text-color-light: #333;
+    --control-bg-light: #fff;
+    --control-border-light: #ddd;
+    --button-bg-light: #4caf50;
+    --button-hover-light: #45a049;
+    
+    --bg-color-dark: #0a0a0a; /* Darker background color */
+    --text-color-dark: #eee;
+    --control-bg-dark: #242424;
+    --control-border-dark: #444;
+    --button-bg-dark: #388e3c;
+    --button-hover-dark: #2e7d32;
+}
+
 body {
     margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
     transition: background-color 0.3s ease;
 }
 
 body.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+}
+
+body.light-mode {
+    background-color: var(--bg-color-light);
+    color: var(--text-color-light);
 }
 
 canvas {
     display: block;
-    background-color: #fff;
-    transition: background-color 0.3s ease;
+    width: 100vw;
+    height: 100vh;
 }
 
-canvas.dark-mode {
-    background-color: #000;
+/* Top Controls Bar */
+.top-controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.8); /* Darker background for top bar */
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box; /* Ensure padding is included in width calculation */
 }
 
+.left-controls, .right-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Make sure toggle button is fully visible */
+.toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 8px; /* Add some margin to prevent it from being cut off */
+    position: relative; /* Ensure proper positioning */
+}
+
+/* Settings Panel */
 .controls {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    position: fixed;
+    right: 20px;
+    top: 70px; /* Space for the top bar */
+    width: 300px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    background-color: rgba(20, 20, 20, 0.95); /* Darker panel background */
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    z-index: 100;
+    transition: all 0.3s ease;
+    transform: translateX(110%);
+    opacity: 0;
 }
 
-body.dark-mode .controls {
-    background-color: rgba(40, 40, 40, 0.8);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+.controls.open {
+    transform: translateX(0);
+    opacity: 1;
 }
 
-button {
-    padding: 5px 10px;
-    margin-right: 5px;
-    margin-top: 10px;
-    cursor: pointer;
-    background-color: #4CAF50;
-    color: white;
+.controls-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--control-border-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.controls-body {
+    padding: 16px;
+}
+
+.controls-body > div {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure the toggle button is properly centered and visible */
+.toggle-icon {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Form elements */
+label {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+input[type=number], input[type=range] {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--control-border-dark);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color-dark);
+}
+
+body.light-mode input[type=number], body.light-mode input[type=range] {
+    border: 1px solid var(--control-border-light);
+    background-color: var(--control-bg-light);
+    color: var(--text-color-light);
+}
+
+input[type=color] {
+    width: 100%;
+    height: 40px;
     border: none;
     border-radius: 4px;
-    transition: background-color 0.3s;
+}
+
+/* Buttons */
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--button-bg-dark);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 button:hover {
-    background-color: #3e8e41;
+    background-color: var(--button-hover-dark);
 }
 
-body.dark-mode button {
-    background-color: #388E3C;
+body.light-mode button {
+    background-color: var(--button-bg-light);
 }
 
-body.dark-mode button:hover {
-    background-color: #2E7D32;
+body.light-mode button:hover {
+    background-color: var(--button-hover-light);
 }
 
-input, select {
-    margin: 5px 0;
-    width: 100px;
-    padding: 4px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-body.dark-mode input, 
-body.dark-mode select {
-    background-color: #333;
-    color: white;
-    border-color: #555;
-}
-
-input[type="color"] {
-    padding: 0;
-    height: 25px;
-    cursor: pointer;
-}
-
-label {
-    display: inline-block;
-    width: 120px;
-}
-
-/* Toggle switch styling */
-.dark-mode-container {
+.toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    margin-top: 10px;
+    justify-content: center;
+    padding: 0;
 }
 
+.toggle-btn.active {
+    background-color: var(--button-hover-dark);
+}
+
+/* Switch slider for dark mode */
 .switch {
     position: relative;
     display: inline-block;
     width: 50px;
     height: 24px;
-    margin-left: 10px;
 }
 
 .switch input {
@@ -131,11 +227,11 @@ label {
 }
 
 input:checked + .slider {
-    background-color: #2196F3;
+    background-color: var(--button-bg-dark);
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 1px var(--button-bg-dark);
 }
 
 input:checked + .slider:before {
@@ -150,60 +246,34 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-/* Slider container styles */
 .slider-container {
     display: flex;
     align-items: center;
-    margin: 10px 0;
-}
-
-.slider-container label {
-    margin-right: 10px;
+    gap: 8px;
 }
 
 .slider-value {
-    margin-left: 10px;
-    width: 30px;
-    text-align: center;
-    font-weight: bold;
+    font-size: 14px;
+    min-width: 36px;
 }
 
-/* Range slider styling */
-input[type="range"] {
-    -webkit-appearance: none;
-    width: 100px;
-    height: 8px;
-    background: #d3d3d3;
-    border-radius: 5px;
-    outline: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #2196F3;
-    cursor: pointer;
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #2196F3;
-    cursor: pointer;
-}
-
-body.dark-mode input[type="range"] {
-    background: #555;
-}
-
-body.dark-mode input[type="range"]::-webkit-slider-thumb {
-    background: #64B5F6;
-}
-
-body.dark-mode input[type="range"]::-moz-range-thumb {
-    background: #64B5F6;
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .top-controls {
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 15px;
+    }
+    
+    .controls {
+        width: calc(100% - 40px);
+        right: 20px;
+        left: 20px;
+    }
+    
+    /* Ensure the toggle button is fully visible on mobile */
+    .right-controls {
+        width: 100%;
+        justify-content: space-evenly;
+    }
 }

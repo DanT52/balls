@@ -15,6 +15,8 @@ let resetBtn;
 let darkModeToggle;
 let slowMotionSlider;
 let slowMotionValue;
+let toggleSettingsBtn;
+let controlsPanel;
 
 // Setup UI controls and event listeners
 export function setupUIControls() {
@@ -32,6 +34,8 @@ export function setupUIControls() {
     darkModeToggle = document.getElementById('dark-mode-toggle');
     slowMotionSlider = document.getElementById('slow-motion');
     slowMotionValue = document.getElementById('slow-motion-value');
+    toggleSettingsBtn = document.getElementById('toggle-settings');
+    controlsPanel = document.querySelector('.controls.collapsible');
     
     // Initialize dark mode first to prevent white flash
     initializeDarkMode();
@@ -43,6 +47,7 @@ export function setupUIControls() {
     launchBtn.addEventListener('click', launchMainBall);
     resetBtn.addEventListener('click', resetSimulation);
     darkModeToggle.addEventListener('change', toggleDarkMode);
+    toggleSettingsBtn.addEventListener('click', toggleSettingsPanel);
     
     // Update slow motion display value
     slowMotionSlider.addEventListener('input', updateSlowMotionDisplay);
@@ -58,6 +63,30 @@ export function setupUIControls() {
     inputElements.forEach(input => {
         input.addEventListener('change', saveSimulationSettings);
     });
+    
+    // Initialize settings panel state
+    initializeSettingsPanel();
+}
+
+// Initialize settings panel based on saved state or closed by default
+function initializeSettingsPanel() {
+    const isPanelOpen = localStorage.getItem('ballsSimulationPanelOpen') === 'true';
+    controlsPanel.classList.toggle('open', isPanelOpen);
+    saveSettingsPanelState(isPanelOpen);
+}
+
+// Toggle the settings panel visibility
+function toggleSettingsPanel() {
+    const isOpen = controlsPanel.classList.toggle('open');
+    saveSettingsPanelState(isOpen);
+}
+
+// Save the state of the settings panel
+function saveSettingsPanelState(isOpen) {
+    localStorage.setItem('ballsSimulationPanelOpen', isOpen);
+    // Update toggle button appearance based on panel state
+    toggleSettingsBtn.setAttribute('aria-expanded', isOpen);
+    toggleSettingsBtn.classList.toggle('active', isOpen);
 }
 
 // Initialize dark mode with a default of true (dark)

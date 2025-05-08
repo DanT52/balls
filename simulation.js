@@ -89,7 +89,7 @@ function updatePhysics(deltaTime) {
         currentMainBall.update(gravity, friction, canvas.width, canvas.height, elasticity, deltaTime);
         
         // Check if main ball reaches right side of screen
-        if (currentMainBall.x + currentMainBall.radius > canvas.width * 0.8) {
+        if (currentMainBall.x + currentMainBall.radius > canvas.width * .99) {
             breakMainBall();
         }
     }
