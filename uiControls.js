@@ -16,7 +16,9 @@ let darkModeToggle;
 let slowMotionSlider;
 let slowMotionValue;
 let toggleSettingsBtn;
-let controlsPanel;
+let togglePhysicsBtn;
+let ballControlsPanel;
+let physicsControlsPanel;
 let launchSideSelect;
 let launchAngleInput;
 let launchAngleValue;
@@ -38,7 +40,9 @@ export function setupUIControls() {
     slowMotionSlider = document.getElementById('slow-motion');
     slowMotionValue = document.getElementById('slow-motion-value');
     toggleSettingsBtn = document.getElementById('toggle-settings');
-    controlsPanel = document.querySelector('.controls.collapsible');
+    togglePhysicsBtn = document.getElementById('toggle-physics');
+    ballControlsPanel = document.getElementById('ball-panel');
+    physicsControlsPanel = document.getElementById('physics-panel');
     launchSideSelect = document.getElementById('launch-side');
     launchAngleInput = document.getElementById('launch-angle');
     launchAngleValue = document.getElementById('launch-angle-value');
@@ -82,7 +86,8 @@ export function setupUIControls() {
     launchBtn.addEventListener('click', launchMainBall);
     resetBtn.addEventListener('click', resetSimulation);
     darkModeToggle.addEventListener('change', toggleDarkMode);
-    toggleSettingsBtn.addEventListener('click', toggleSettingsPanel);
+    toggleSettingsBtn.addEventListener('click', toggleBallSettingsPanel);
+    togglePhysicsBtn.addEventListener('click', togglePhysicsPanel);
     
     // Update slow motion display value
     slowMotionSlider.addEventListener('input', updateSlowMotionDisplay);
@@ -106,29 +111,54 @@ export function setupUIControls() {
         input.addEventListener('change', saveSimulationSettings);
     });
     
-    // Initialize settings panel state
-    initializeSettingsPanel();
+    // Initialize panels state
+    initializePanels();
 }
 
-// Initialize settings panel based on saved state or closed by default
-function initializeSettingsPanel() {
-    const isPanelOpen = localStorage.getItem('ballsSimulationPanelOpen') === 'true';
-    controlsPanel.classList.toggle('open', isPanelOpen);
-    saveSettingsPanelState(isPanelOpen);
+// Initialize panels based on saved state
+function initializePanels() {
+    const isBallPanelOpen = localStorage.getItem('ballsSimulationBallPanelOpen') === 'true';
+    const isPhysicsPanelOpen = localStorage.getItem('ballsSimulationPhysicsPanelOpen') === 'true';
+    
+    ballControlsPanel.classList.toggle('open', isBallPanelOpen);
+    physicsControlsPanel.classList.toggle('open', isPhysicsPanelOpen);
+    
+    updateToggleButton(toggleSettingsBtn, isBallPanelOpen);
+    updateToggleButton(togglePhysicsBtn, isPhysicsPanelOpen);
 }
 
-// Toggle the settings panel visibility
-function toggleSettingsPanel() {
-    const isOpen = controlsPanel.classList.toggle('open');
-    saveSettingsPanelState(isOpen);
+// Update toggle button appearance
+function updateToggleButton(button, isActive) {
+    button.setAttribute('aria-expanded', isActive);
+    button.classList.toggle('active', isActive);
 }
 
-// Save the state of the settings panel
-function saveSettingsPanelState(isOpen) {
-    localStorage.setItem('ballsSimulationPanelOpen', isOpen);
-    // Update toggle button appearance based on panel state
-    toggleSettingsBtn.setAttribute('aria-expanded', isOpen);
-    toggleSettingsBtn.classList.toggle('active', isOpen);
+// Toggle the ball settings panel visibility
+function toggleBallSettingsPanel() {
+    const isOpen = ballControlsPanel.classList.toggle('open');
+    localStorage.setItem('ballsSimulationBallPanelOpen', isOpen);
+    updateToggleButton(toggleSettingsBtn, isOpen);
+    
+    // Close the other panel if this one is opening
+    if (isOpen && physicsControlsPanel.classList.contains('open')) {
+        physicsControlsPanel.classList.remove('open');
+        localStorage.setItem('ballsSimulationPhysicsPanelOpen', false);
+        updateToggleButton(togglePhysicsBtn, false);
+    }
+}
+
+// Toggle the physics panel visibility
+function togglePhysicsPanel() {
+    const isOpen = physicsControlsPanel.classList.toggle('open');
+    localStorage.setItem('ballsSimulationPhysicsPanelOpen', isOpen);
+    updateToggleButton(togglePhysicsBtn, isOpen);
+    
+    // Close the other panel if this one is opening
+    if (isOpen && ballControlsPanel.classList.contains('open')) {
+        ballControlsPanel.classList.remove('open');
+        localStorage.setItem('ballsSimulationBallPanelOpen', false);
+        updateToggleButton(toggleSettingsBtn, false);
+    }
 }
 
 // Initialize dark mode with a default of true (dark)

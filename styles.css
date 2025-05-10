@@ -77,11 +77,9 @@ body.dark-mode .top-controls {
     position: relative; /* Ensure proper positioning */
 }
 
-/* Settings Panel */
+/* Settings Panels */
 .controls {
     position: fixed;
-    right: 20px;
-    top: 70px; /* Space for the top bar */
     width: 300px;
     max-height: calc(100vh - 90px);
     overflow-y: auto;
@@ -91,8 +89,21 @@ body.dark-mode .top-controls {
     padding: 0;
     z-index: 100;
     transition: all 0.3s ease;
-    transform: translateX(110%);
     opacity: 0;
+}
+
+/* Physics panel (left side) */
+.physics-controls {
+    left: 20px;
+    top: 70px;
+    transform: translateX(-110%);
+}
+
+/* Ball settings panel (right side) */
+.ball-controls {
+    right: 20px;
+    top: 70px;
+    transform: translateX(110%);
 }
 
 body.dark-mode .controls {
@@ -356,12 +367,19 @@ input:checked + .slider:before {
     
     .controls {
         width: calc(100% - 40px);
+    }
+    
+    .physics-controls {
+        left: 20px;
+    }
+    
+    .ball-controls {
         right: 20px;
         left: 20px;
     }
     
-    /* Ensure the toggle button is fully visible on mobile */
-    .right-controls {
+    /* Ensure the toggle buttons are fully visible on mobile */
+    .right-controls, .left-controls {
         width: 100%;
         justify-content: space-evenly;
     }
