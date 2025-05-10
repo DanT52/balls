@@ -1,11 +1,11 @@
 import { Ball, checkCollision } from './ballPhysics.js';
-import { canvas, ctx, balls, mainBall, animationId, setMainBall, setAnimationId, setSimulationRunning, isSimulationRunning } from './script.js';
+import { canvas, ctx, balls, mainBalls, animationId, setMainBalls, addMainBall, removeMainBall, setAnimationId, setSimulationRunning, isSimulationRunning } from './script.js';
 import { getRandomColor } from './colorUtils.js';
 import { getUIValues } from './uiControls.js';
 
 // Create the main ball based on launch side
-export function createMainBall() {
-    const { ballSize, mainBallColor, launchSide } = getUIValues();
+export function createMainBall(ballSize, mainBallColor, launchSide) {
+    
     const radius = parseInt(ballSize);
     const color = mainBallColor || '#FF5252';
     let x, y;
@@ -36,18 +36,30 @@ export function createMainBall() {
     return new Ball(x, y, radius, color);
 }
 
-// Break the main ball into smaller ones
-export function breakMainBall() {
+// Get the opposite side
+function getOppositeSide(side) {
+    switch(side) {
+        case 'left': return 'right';
+        case 'right': return 'left';
+        case 'top': return 'bottom';
+        case 'bottom': return 'top';
+        default: return 'right';
+    }
+}
+
+// Break a specific main ball into smaller ones
+export function breakMainBall(currentMainBall) {
+    if (!currentMainBall) return;
+    
     const { numBalls } = getUIValues();
-    const currentMainBall = mainBall;
     const smallRadius = currentMainBall.radius / Math.sqrt(numBalls);
     
     // Calculate total energy of the main ball
-    const mainEnergy = 0.5 * currentMainBall.mass * (currentMainBall.vx * currentMainBall.vx + currentMainBall.vy * currentMainBall.vy);
+    const mainEnergy = 0.1 * currentMainBall.mass * (currentMainBall.vx * currentMainBall.vx + currentMainBall.vy * currentMainBall.vy);
     
     // Energy distribution factor - we'll distribute only part of the energy
     // to ensure we don't create excess energy
-    const energyFactor = 0.4;
+    const energyFactor = 0.9;
     
     for (let i = 0; i < numBalls; i++) {
         // Create balls in a circle around where the main ball was
@@ -59,8 +71,8 @@ export function breakMainBall() {
         );
         
         // Base velocity component from main ball's momentum (scaled by mass)
-        const baseVx = currentMainBall.vx * 0.5;
-        const baseVy = currentMainBall.vy * 0.3;
+        const baseVx = currentMainBall.vx * 0.1;
+        const baseVy = currentMainBall.vy * 0.1;
         
         // Additional velocity component in random directions
         // Scale by sqrt(energy/mass) to maintain energy conservation
@@ -74,7 +86,8 @@ export function breakMainBall() {
         balls.push(newBall);
     }
     
-    setMainBall(null);
+    // Remove this specific ball from the mainBalls array
+    removeMainBall(currentMainBall);
 }
 
 let lastTimestamp = 0;
@@ -106,38 +119,43 @@ export function animate(timestamp = 0) {
 
 // Physics update function
 function updatePhysics(deltaTime) {
-    const { gravity, friction, elasticity, launchSide } = getUIValues();
-    const currentMainBall = mainBall;
+    const { gravity, friction, elasticity} = getUIValues();
     
-    if (currentMainBall) {
-        // Update main ball physics with delta time
-        currentMainBall.update(gravity, friction, canvas.width, canvas.height, elasticity, deltaTime);
-        
-        // Get the starting wall based on launch side
-        const startWall = launchSide || 'left';
-        
-        // Check if main ball reaches any edge of the screen EXCEPT its starting wall
-        let reachedEdge = false;
-        
-        // Define edge thresholds with a small buffer (1% of canvas size)
-        const rightEdgeThreshold = canvas.width * 0.99;
-        const leftEdgeThreshold = canvas.width * 0.01;
-        const bottomEdgeThreshold = canvas.height * 0.99;
-        const topEdgeThreshold = canvas.height * 0.01;
-        
-        // Check walls based on which was NOT the starting wall
-        if (startWall !== 'right' && currentMainBall.x + currentMainBall.radius > rightEdgeThreshold) {
-            reachedEdge = true; // Hit right wall (and didn't start from right)
-        } else if (startWall !== 'left' && currentMainBall.x - currentMainBall.radius < leftEdgeThreshold) {
-            reachedEdge = true; // Hit left wall (and didn't start from left)
-        } else if (startWall !== 'bottom' && currentMainBall.y + currentMainBall.radius > bottomEdgeThreshold) {
-            reachedEdge = true; // Hit bottom wall (and didn't start from bottom)
-        } else if (startWall !== 'top' && currentMainBall.y - currentMainBall.radius < topEdgeThreshold) {
-            reachedEdge = true; // Hit top wall (and didn't start from top)
-        }
-        
-        if (reachedEdge) {
-            breakMainBall();
+    if (mainBalls.length > 0) {
+        // Loop through all main balls
+        for (let i = mainBalls.length - 1; i >= 0; i--) {
+            const currentMainBall = mainBalls[i];
+            if (!currentMainBall) continue;
+            
+            // Update main ball physics with delta time
+            currentMainBall.update(gravity, friction, canvas.width, canvas.height, elasticity, deltaTime);
+            
+            // Get the starting wall of this ball
+            const startWall = currentMainBall.launchSide || 'left';
+            
+            // Check if main ball reaches any edge of the screen EXCEPT its starting wall
+            let reachedEdge = false;
+            
+            // Define edge thresholds with a small buffer (1% of canvas size)
+            const rightEdgeThreshold = canvas.width * 0.99;
+            const leftEdgeThreshold = canvas.width * 0.01;
+            const bottomEdgeThreshold = canvas.height * 0.99;
+            const topEdgeThreshold = canvas.height * 0.01;
+            
+            // Check walls based on which was NOT the starting wall
+            if (startWall !== 'right' && currentMainBall.x + currentMainBall.radius > rightEdgeThreshold) {
+                reachedEdge = true; // Hit right wall (and didn't start from right)
+            } else if (startWall !== 'left' && currentMainBall.x - currentMainBall.radius < leftEdgeThreshold) {
+                reachedEdge = true; // Hit left wall (and didn't start from left)
+            } else if (startWall !== 'bottom' && currentMainBall.y + currentMainBall.radius > bottomEdgeThreshold) {
+                reachedEdge = true; // Hit bottom wall (and didn't start from bottom)
+            } else if (startWall !== 'top' && currentMainBall.y - currentMainBall.radius < topEdgeThreshold) {
+                reachedEdge = true; // Hit top wall (and didn't start from top)
+            }
+            
+            if (reachedEdge) {
+                breakMainBall(currentMainBall);
+            }
         }
     }
     
@@ -150,9 +168,39 @@ function updatePhysics(deltaTime) {
             checkCollision(balls[i], balls[j], elasticity);
         }
         
-        // Check collision with main ball if it exists
-        if (currentMainBall) {
-            checkCollision(balls[i], currentMainBall, elasticity);
+        // Check collision with all main balls
+        for (const mainBall of mainBalls) {
+            if (mainBall) {
+                checkCollision(balls[i], mainBall, elasticity);
+            }
+        }
+    }
+    
+    // Check collisions between main balls
+    for (let i = 0; i < mainBalls.length; i++) {
+        for (let j = i + 1; j < mainBalls.length; j++) {
+            if (mainBalls[i] && mainBalls[j]) {
+                // Define a callback function to break both balls on collision
+                const breakBothBallsCallback = (ball1, ball2, velocity) => {
+                    // Velocity threshold to determine if collision is strong enough to break the balls
+                    const breakingVelocityThreshold = 5;
+                    
+                    if (velocity >= breakingVelocityThreshold) {
+                        // Create temporary array of balls to break
+                        const ballsToBreak = [ball1, ball2];
+                        
+                        // Break both balls
+                        for (const ball of ballsToBreak) {
+                            // Use setTimeout with 0ms to defer the breaking to avoid modification 
+                            // of the array during iteration
+                            setTimeout(() => breakMainBall(ball), 0);
+                        }
+                    }
+                };
+                
+                // Check collision with the callback
+                checkCollision(mainBalls[i], mainBalls[j], elasticity, breakBothBallsCallback);
+            }
         }
     }
 }
@@ -161,9 +209,11 @@ function updatePhysics(deltaTime) {
 function renderScene() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Main ball
-    if (mainBall) {
-        mainBall.draw();
+    // Main balls
+    for (const mainBall of mainBalls) {
+        if (mainBall) {
+            mainBall.draw();
+        }
     }
 
     // Other balls
@@ -172,69 +222,74 @@ function renderScene() {
     }
 }
 
-// Launch the main ball with angle and side
+// Launch the main balls with angle and side
 export function launchMainBall() {
     // Clear any existing animation to avoid needing double clicks
     if (isSimulationRunning && animationId) {
         cancelAnimationFrame(animationId);
     }
     
-    const { launchSpeed, launchSide, launchAngle } = getUIValues();
+    const { launchSpeed, launchSide, launchAngle, ballSize, mainBallColor } = getUIValues();
     
-    // Create a new main ball
-    if (mainBall) {
-        setMainBall(null); // Remove reference to the old main ball
-    }
+    // Clear existing main balls
+    setMainBalls([]);
     
     // Always consider simulation to be starting fresh
     setSimulationRunning(true);
     
-    // Create and launch new main ball
-    const newMainBall = createMainBall();
-    setMainBall(newMainBall);
+    // Get the opposite side for the second ball
+    const oppositeSide = getOppositeSide(launchSide || 'left');
     
-    if (!newMainBall) {
-        console.error("Failed to create main ball");
+    // Create two main balls - one from launch side and one from opposite side
+    const mainBall1 = createMainBall(ballSize, mainBallColor, launchSide);
+    const mainBall2 = createMainBall(ballSize, mainBallColor, oppositeSide);
+    
+    if (!mainBall1 || !mainBall2) {
+        console.error("Failed to create main balls");
         return;
     }
     
-    // Store the launch side on the ball object for reference
-    newMainBall.launchSide = launchSide || 'left';
+    // Store the launch sides on the ball objects for reference
+    mainBall1.launchSide = launchSide || 'left';
+    mainBall2.launchSide = oppositeSide;
+    
+    // Add both balls to the mainBalls array
+    addMainBall(mainBall1);
+    //addMainBall(mainBall2);
     
     // Convert angle from degrees to radians
-    // Now angle range is -90 to 90 degrees: 
-    // 0° is straight into canvas, negative is up, positive is down
     const angleRad = (launchAngle * Math.PI) / 180;
-    
-    // Apply velocity based on side and angle
     const actualSpeed = parseInt(launchSpeed) || 10;
-    
-    switch (launchSide || 'left') {
-        case 'left':
-            // From left: 0° is right, -90° is up, 90° is down
-            newMainBall.vx = actualSpeed * Math.cos(angleRad);
-            newMainBall.vy = actualSpeed * Math.sin(angleRad);
-            break;
-        case 'right':
-            // From right: 0° is left, -90° is up, 90° is down
-            newMainBall.vx = -actualSpeed * Math.cos(angleRad);
-            newMainBall.vy = actualSpeed * Math.sin(angleRad);
-            break;
-        case 'top':
-            // From top: 0° is down, -90° is left, 90° is right
-            newMainBall.vx = actualSpeed * Math.sin(angleRad);
-            newMainBall.vy = actualSpeed * Math.cos(angleRad);
-            break;
-        case 'bottom':
-            // From bottom: 0° is up, -90° is left, 90° is right
-            newMainBall.vx = actualSpeed * Math.sin(angleRad);
-            newMainBall.vy = -actualSpeed * Math.cos(angleRad);
-            break;
-        default:
-            // Default to left side launch
-            newMainBall.vx = actualSpeed;
-            newMainBall.vy = 0;
-    }
+
+    // Set velocity for each main ball based on its launch side
+    mainBalls.forEach((mainBall) => {
+        switch (mainBall.launchSide) {
+            case 'left':
+                // From left: 0° is right, -90° is up, 90° is down
+                mainBall.vx = actualSpeed * Math.cos(angleRad);
+                mainBall.vy = actualSpeed * Math.sin(angleRad);
+                break;
+            case 'right':
+                // From right: 0° is left, -90° is up, 90° is down
+                mainBall.vx = -actualSpeed * Math.cos(angleRad);
+                mainBall.vy = actualSpeed * Math.sin(angleRad);
+                break;
+            case 'top':
+                // From top: 0° is down, -90° is left, 90° is right
+                mainBall.vx = actualSpeed * Math.sin(angleRad);
+                mainBall.vy = actualSpeed * Math.cos(angleRad);
+                break;
+            case 'bottom':
+                // From bottom: 0° is up, -90° is left, 90° is right
+                mainBall.vx = actualSpeed * Math.sin(angleRad);
+                mainBall.vy = -actualSpeed * Math.cos(angleRad);
+                break;
+            default:
+                // Default to left side launch
+                mainBall.vx = actualSpeed;
+                mainBall.vy = 0;
+        }
+    });
     
     // Start the animation immediately (no need for double click)
     lastTimestamp = 0; // Reset timestamp
@@ -246,8 +301,8 @@ export function resetSimulation() {
     if (animationId) {
         cancelAnimationFrame(animationId);
     }
-    setMainBall(null);
-    balls.length = 0; // Clear the array
+    setMainBalls([]); // Clear the array of main balls
+    balls.length = 0; // Clear the array of small balls
     setSimulationRunning(false);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     

@@ -14,14 +14,21 @@ export { canvas, ctx };
 
 // Setup global simulation state
 let balls = [];
-let mainBall = null;
+let mainBalls = []; // Changed from single mainBall to array of mainBalls
 let animationId = null;
 let isSimulationRunning = false;
 let isDarkMode = true; // Default to dark mode
 
 // Export simulation state
-export { balls, mainBall, animationId, isSimulationRunning, isDarkMode };
-export const setMainBall = (ball) => mainBall = ball;
+export { balls, mainBalls, animationId, isSimulationRunning, isDarkMode };
+export const setMainBalls = (ballsArray) => mainBalls = ballsArray; // Updated to set array
+export const addMainBall = (ball) => mainBalls.push(ball); // Add a ball to the mainBalls array
+export const removeMainBall = (ball) => {
+    const index = mainBalls.indexOf(ball);
+    if (index !== -1) {
+        mainBalls.splice(index, 1);
+    }
+};
 export const setAnimationId = (id) => animationId = id;
 export const setSimulationRunning = (state) => isSimulationRunning = state;
 export const setDarkMode = (state) => {
@@ -30,7 +37,7 @@ export const setDarkMode = (state) => {
     canvas.classList.toggle('dark-mode', state);
     
     // Need to redraw any existing balls with/without glow
-    if (mainBall) mainBall.updateGlowState(isDarkMode);
+    mainBalls.forEach(ball => ball && ball.updateGlowState(isDarkMode)); // Updated for array
     balls.forEach(ball => ball.updateGlowState(isDarkMode));
 };
 

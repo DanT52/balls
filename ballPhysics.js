@@ -110,7 +110,7 @@ export class Ball {
 }
 
 // Check collision between two balls
-export function checkCollision(ball1, ball2, elasticity) {
+export function checkCollision(ball1, ball2, elasticity, onCollisionCallback = null) {
     const dx = ball2.x - ball1.x;
     const dy = ball2.y - ball1.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -192,6 +192,11 @@ export function checkCollision(ball1, ball2, elasticity) {
                 ball2.collisionEffect = collisionIntensity;
                 ball2.lastCollisionTime = now;
             }
+        }
+        
+        // Execute the callback if provided
+        if (onCollisionCallback) {
+            onCollisionCallback(ball1, ball2, relVelocityMagnitude);
         }
         
         return true;
