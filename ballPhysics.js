@@ -1,5 +1,5 @@
 import { ctx } from './script.js';
-import { getRandomColor } from './colorUtils.js';
+import { getRandomColor, hexToRgb } from './colorUtils.js';
 import { isDarkMode } from './script.js';
 
 // Ball class
@@ -13,6 +13,9 @@ export class Ball {
         this.vy = 0;
         this.mass = radius * radius * Math.PI; // Mass proportional to area
         this.hasGlow = isDarkMode; // Initialize based on current dark mode state
+        this.collisionEffect = 0; // Collision effect timer (0-1)
+        this.lastCollisionTime = 0; // When the last collision occurred
+        this.collisionBrightnessFactor = 0.9 //how much to brighten ball on collision
     }
 
     updateGlowState(isDarkMode) {
@@ -22,16 +25,34 @@ export class Ball {
     draw() {
         ctx.beginPath();
         
-        // Add basic glow effect in dark mode
-        if (this.hasGlow) {
-            ctx.shadowBlur = this.radius * 0.5;
+        // Calculate dynamic glow based on collision effect
+        const baseGlow = this.hasGlow ? this.radius * 0.5 : 0;
+        
+        const totalGlow = baseGlow;
+        
+        if (totalGlow > 0) {
+            ctx.shadowBlur = totalGlow;
             ctx.shadowColor = this.color;
         } else {
             ctx.shadowBlur = 0;
         }
         
+        // Calculate brightness boost for collision effect
+        let fillStyle = this.color;
+        if (this.collisionEffect > 0) {
+            // Create a brighter version of the ball's color
+            const rgb = hexToRgb(this.color);
+            if (rgb) {
+                // Brighten the color based on collision effect
+                const brightness = Math.min(255, rgb.r + (255 - rgb.r) * this.collisionEffect * this.collisionBrightnessFactor);
+                const g = Math.min(255, rgb.g + (255 - rgb.g) * this.collisionEffect * this.collisionBrightnessFactor);
+                const b = Math.min(255, rgb.b + (255 - rgb.b) * this.collisionEffect * this.collisionBrightnessFactor);
+                fillStyle = `rgb(${Math.floor(brightness)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+            }
+        }
+        
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = fillStyle;
         ctx.fill();
         ctx.strokeStyle = this.hasGlow ? this.color : '#000';
         ctx.lineWidth = 1;
@@ -40,6 +61,14 @@ export class Ball {
         
         // Reset shadow
         ctx.shadowBlur = 0;
+    }
+    
+    // Update collision effect (to be called in animation loop)
+    updateCollisionEffect(deltaTime) {
+        if (this.collisionEffect > 0) {
+            // Fade out over 1 second
+            this.collisionEffect = Math.max(0, this.collisionEffect - deltaTime*4);
+        }
     }
 
     update(gravity, friction, canvasWidth, canvasHeight, elasticity, deltaTime) {
@@ -57,6 +86,9 @@ export class Ball {
         // Update position (scale velocity by delta time)
         this.x += this.vx * deltaTime * 60;
         this.y += this.vy * deltaTime * 60;
+        
+        // Update collision effect
+        this.updateCollisionEffect(deltaTime);
         
         // Bounce off walls
         if (this.x - this.radius < 0) {
@@ -84,6 +116,7 @@ export function checkCollision(ball1, ball2, elasticity) {
     const distance = Math.sqrt(dx * dx + dy * dy);
     const minDistance = ball1.radius + ball2.radius;
     
+    // these balls collided
     if (distance < minDistance) {
         // Calculate collision normal
         const nx = dx / distance;
@@ -130,6 +163,36 @@ export function checkCollision(ball1, ball2, elasticity) {
         ball1.y -= correctionY * ball1Ratio;
         ball2.x += correctionX * ball2Ratio; 
         ball2.y += correctionY * ball2Ratio;
+        
+        // Check if the collision velocity is high enough to trigger the visual effect
+        // Calculate magnitude of relative velocity
+        const relVelocityMagnitude = Math.sqrt(
+            relativeVelocityX * relativeVelocityX + 
+            relativeVelocityY * relativeVelocityY
+        );
+        
+        // Threshold for "high velocity" collision (can be adjusted)
+        const velocityThreshold = 10;
+        
+        if (relVelocityMagnitude > velocityThreshold) {
+            // Set collision effect intensity based on relative velocity
+            const now = performance.now();
+            
+            // Normalize collision intensity (clamp between 0.3 and 1)
+            const collisionIntensity = Math.min(1, Math.max(0.3, relVelocityMagnitude / 20));
+            
+            // Only apply the collision effect if it would make the ball brighter
+            // This prevents flickering when a minor collision follows a major one
+            if (ball1.collisionEffect < collisionIntensity) {
+                ball1.collisionEffect = collisionIntensity;
+                ball1.lastCollisionTime = now;
+            }
+            
+            if (ball2.collisionEffect < collisionIntensity) {
+                ball2.collisionEffect = collisionIntensity;
+                ball2.lastCollisionTime = now;
+            }
+        }
         
         return true;
     }
