@@ -106,6 +106,73 @@ body.dark-mode .top-controls {
     transform: translateX(110%);
 }
 
+/* Multiple ball panels container */
+.multi-ball-container {
+    display: flex;
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    gap: 15px;
+    transition: all 0.3s ease;
+    z-index: 100;
+    max-height: calc(100vh - 90px);
+}
+
+.ball-panel-item {
+    position: relative !important;
+    transform: none !important;
+    top: 0 !important; /* Ensure no top offset in the container */
+    margin: 0 !important; /* Remove any margin that might cause shifting */
+    right: 0 !important; /* Clear right positioning when in container */
+}
+
+/* Ensure panels start hidden but transition properly when opened */
+.ball-panel-item:not(.open) {
+    opacity: 0;
+    pointer-events: none; /* Prevent interaction with closed panels */
+    transform: translateY(-10px) !important; /* Small shift for animation */
+    z-index: -1; /* Move behind other elements */
+}
+
+.ball-panel-item.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) !important;
+    z-index: 100;
+}
+
+/* Add Ball Button */
+.add-ball-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    background-color: var(--button-bg-light);
+    color: white;
+}
+
+body.dark-mode .add-ball-btn {
+    background-color: var(--button-bg-dark);
+}
+
+/* Remove Ball Button */
+.remove-ball-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background-color: #f44336;
+    font-size: 14px;
+}
+
+.remove-ball-btn:hover {
+    background-color: #d32f2f;
+}
+
 body.dark-mode .controls {
     background-color: rgba(20, 20, 20, 0.95); /* Darker panel background */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
