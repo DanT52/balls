@@ -60,16 +60,6 @@ export function createMainBall(ballSize, mainBallColor, launchSide, ballIndex = 
     return new Ball(x, y, radius, color);
 }
 
-// Get the opposite side
-function getOppositeSide(side) {
-    switch(side) {
-        case 'left': return 'right';
-        case 'right': return 'left';
-        case 'top': return 'bottom';
-        case 'bottom': return 'top';
-        default: return 'right';
-    }
-}
 
 // Break a specific main ball into smaller ones
 export function breakMainBall(currentMainBall) {

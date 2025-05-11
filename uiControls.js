@@ -1,5 +1,6 @@
 import { launchMainBall, resetSimulation } from './simulation.js';
 import { isDarkMode, setDarkMode } from './script.js';
+import { getSettingsFromURL, updateURL, applyPhysicsSettings, copyURLToClipboard } from './urlparsing.js';
 
 // UI elements references
 
@@ -45,7 +46,7 @@ export function setupUIControls() {
     // Initialize dark mode first to prevent white flash
     initializeDarkMode();
     
-    // Load saved settings if they exist
+    // Load settings with URL parameters taking priority over localStorage
     loadSavedSettings();
     
     // Add event listeners
@@ -75,9 +76,17 @@ export function setupUIControls() {
     ];
     
     inputElements.forEach(input => {
-        input.addEventListener('change', saveSimulationSettings);
+        input.addEventListener('change', () => {
+            saveSimulationSettings();
+            updateURL(); // Update URL when physics settings change
+        });
     });
     
+    // Add share button if it exists
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', copyURLToClipboard);
+    }
 }
 
 
@@ -302,7 +311,7 @@ function toggleBallSettingsPanel() {
     
     //localStorage.setItem('ballsSimulationBallPanelOpen', !isAnyPanelOpen);
     updateToggleButton(toggleSettingsBtn, !isAnyPanelOpen);
-    isBallPanelOpen = !isBallPanelOpen;
+    isBallPanelOpen = !isAnyPanelOpen;
 }
 
 // Toggle the physics panel visibility
@@ -368,6 +377,9 @@ function saveMultiBallSettings() {
     
     // Also save to regular simulation settings for backwards compatibility
     saveSimulationSettings();
+    
+    // Update URL with new settings
+    updateURL();
 }
 
 // Get current values from UI controls
@@ -397,10 +409,36 @@ export function getBalls() {
     return ballPanels.map(panel => panel.settings);
 }
 
-// Load saved settings from localStorage
+// Load saved settings from localStorage or URL
 function loadSavedSettings() {
     try {
-        // Load other simulation settings
+        // First check for URL parameters
+        const urlConfig = getSettingsFromURL();
+        
+        if (urlConfig && urlConfig.physics && urlConfig.balls) {
+            // Apply physics settings from URL
+            applyPhysicsSettings(urlConfig.physics);
+            
+            // Clear existing ball panels
+            ballPanels.forEach(p => p.element?.remove());
+            ballPanels = [];
+            currentBallId = 0;
+            
+            // Create ball panels from URL settings
+            if (Array.isArray(urlConfig.balls) && urlConfig.balls.length > 0) {
+                urlConfig.balls.forEach(ballSettings => {
+                    addNewBallPanel(null, ballSettings, "open");
+                });
+                isBallPanelOpen = true;
+                updateToggleButton(toggleSettingsBtn, true);
+            } else {
+                // If no balls in URL, add default ball
+                addNewBallPanel();
+            }
+            return; // Skip localStorage loading
+        }
+        
+        // If no URL config, load from localStorage as before
         const savedSettings = localStorage.getItem('ballsSimulationSettings');
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
@@ -416,6 +454,9 @@ function loadSavedSettings() {
         
         // Load multi-ball settings
         loadMultiBallSettings();
+        
+        // Update URL to reflect loaded settings
+        updateURL();
     } catch (error) {
         console.error('Error loading saved settings:', error);
     }
@@ -446,4 +487,7 @@ function loadMultiBallSettings() {
 function saveSimulationSettings() {
     const settings = getUIValues();
     localStorage.setItem('ballsSimulationSettings', JSON.stringify(settings));
+    
+    // Update URL with new settings
+    updateURL();
 }
