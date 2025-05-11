@@ -427,7 +427,7 @@ function loadSavedSettings() {
             // Create ball panels from URL settings
             if (Array.isArray(urlConfig.balls) && urlConfig.balls.length > 0) {
                 urlConfig.balls.forEach(ballSettings => {
-                    addNewBallPanel(null, ballSettings, "open");
+                    addNewBallPanel(null, ballSettings, "");
                 });
                 isBallPanelOpen = true;
                 updateToggleButton(toggleSettingsBtn, true);
