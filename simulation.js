@@ -1,7 +1,7 @@
 import { Ball, checkCollision } from './ballPhysics.js';
 import { canvas, ctx, balls, mainBalls, animationId, setMainBalls, addMainBall, removeMainBall, setAnimationId, setSimulationRunning, isSimulationRunning } from './script.js';
 import { getRandomColor } from './colorUtils.js';
-import { getUIValues } from './uiControls.js';
+import { getUIValues, getBalls } from './uiControls.js';
 
 // Create the main ball based on launch side
 export function createMainBall(ballSize, mainBallColor, launchSide) {
@@ -51,7 +51,7 @@ function getOppositeSide(side) {
 export function breakMainBall(currentMainBall) {
     if (!currentMainBall) return;
     
-    const { numBalls } = getUIValues();
+    const { numBalls, smallBallColor } = getUIValues();
     const smallRadius = currentMainBall.radius / Math.sqrt(numBalls);
     
     // Calculate total energy of the main ball
@@ -67,7 +67,10 @@ export function breakMainBall(currentMainBall) {
         const newBall = new Ball(
             currentMainBall.x, 
             currentMainBall.y, 
-            smallRadius
+            smallRadius,
+            getRandomColor(smallBallColor)
+            
+
         );
         
         // Base velocity component from main ball's momentum (scaled by mass)
@@ -229,7 +232,9 @@ export function launchMainBall() {
         cancelAnimationFrame(animationId);
     }
     
-    const { launchSpeed, launchSide, launchAngle, ballSize, mainBallColor } = getUIValues();
+    const { launchSpeed, launchSide, launchAngle, ballSize, mainBallColor, multiBalls } = getUIValues();
+
+    console.log(multiBalls)
     
     // Clear existing main balls
     setMainBalls([]);
@@ -255,7 +260,7 @@ export function launchMainBall() {
     
     // Add both balls to the mainBalls array
     addMainBall(mainBall1);
-    //addMainBall(mainBall2);
+    addMainBall(mainBall2);
     
     // Convert angle from degrees to radians
     const angleRad = (launchAngle * Math.PI) / 180;
@@ -310,8 +315,3 @@ export function resetSimulation() {
     lastTimestamp = 0;
 }
 
-// Save current simulation settings to localStorage
-export function saveSimulationSettings() {
-    const settings = getUIValues();
-    localStorage.setItem('ballsSimulationSettings', JSON.stringify(settings));
-}

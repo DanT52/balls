@@ -50,14 +50,12 @@ export function createShade(baseColor, variation) {
 }
 
 // Random color generator - now creates shades of selected color
-export function getRandomColor() {
-    const smallBallColorPicker = document.getElementById('small-ball-color');
+export function getRandomColor(smallBallColorPicker) {
     
     if (smallBallColorPicker) {
-        const baseColor = smallBallColorPicker.value;
         // Create a random variation between -0.4 and 0.4
         const variation = (Math.random() * 0.8) - 0.4;
-        return createShade(baseColor, variation);
+        return createShade(smallBallColorPicker, variation);
     } else {
         // Fallback to original random colors
         const colors = [

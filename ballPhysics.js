@@ -172,7 +172,7 @@ export function checkCollision(ball1, ball2, elasticity, onCollisionCallback = n
         );
         
         // Threshold for "high velocity" collision (can be adjusted)
-        const velocityThreshold = 10;
+        const velocityThreshold = 5;
         
         if (relVelocityMagnitude > velocityThreshold) {
             // Set collision effect intensity based on relative velocity

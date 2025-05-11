@@ -11,4 +11,4 @@ presets
     default presets
     saving presets
 
-    
+[{"id":2,"ballSize":100,"numBalls":70,"launchSpeed":15,"launchSide":"left","launchAngle":0,"mainBallColor":"#3128d3","smallBallColor":"#f0e8eb"}]
