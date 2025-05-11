@@ -115,7 +115,13 @@ function addNewBallPanel(e, DefaultSettings, open ="open") {
     
     
     let multiBallContainer = document.querySelector('.multi-ball-container');
-   
+    
+    // If this is the first panel being added, ensure container exists
+    if (!multiBallContainer) {
+        multiBallContainer = document.createElement('div');
+        multiBallContainer.className = 'multi-ball-container';
+        document.body.appendChild(multiBallContainer);
+    }
     
     // Create new ball panel
     const newBallPanel = document.createElement('div');
@@ -147,6 +153,11 @@ function addNewBallPanel(e, DefaultSettings, open ="open") {
     
     // Save the updated ball panels
     saveMultiBallSettings();
+    
+    // Scroll to the new panel - smooth scrolling for better UX
+    setTimeout(() => {
+        newBallPanel.scrollIntoView({ behavior: 'smooth', inline: 'end' });
+    }, 100);
 }
 
 // Generate HTML for a ball panel
@@ -306,6 +317,14 @@ function toggleBallSettingsPanel() {
     //localStorage.setItem('ballsSimulationBallPanelOpen', !isAnyPanelOpen);
     updateToggleButton(toggleSettingsBtn, !isAnyPanelOpen);
     isBallPanelOpen = !isAnyPanelOpen;
+    
+    // Adjust positioning for mobile - ensure panels are visible when opened
+    if (!isAnyPanelOpen) {
+        const container = document.querySelector('.multi-ball-container');
+        if (container && container.scrollLeft === 0 && container.children.length > 0) {
+            container.children[0].scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
+    }
 }
 
 // Toggle the physics panel visibility
