@@ -1,14 +1,14 @@
-#todo
--  multi balls colliding\
-    - get a datastructure will all the balls settings
-    - have a way to space out balls on the same side
-    - have a way for mainballs to know when they've collieded.
+# Balls Physics Simulator
 
+A fun physics-based ball simulation that lets you watch multiple balls collide and interact with customizable parameters like gravity, elasticity, and colors. Perfect for relaxation or testing physics principles.
 
+## Preset Configurations
 
+### PC Preset 1 - Large Colorful Balls
+[Launch PC Preset 1](https://dant52.github.io/balls/?config=%7B"physics"%3A%7B"gravity"%3A0.4%2C"elasticity"%3A0.6%2C"friction"%3A0.01%2C"darkMode"%3Atrue%2C"slowMotionFactor"%3A1%7D%2C"balls"%3A%5B%7B"id"%3A1%2C"ballSize"%3A100%2C"numBalls"%3A10%2C"launchSpeed"%3A100%2C"launchSide"%3A"right"%2C"launchAngle"%3A-25%2C"mainBallColor"%3A"%239228eb"%2C"smallBallColor"%3A"%23ff0000"%7D%2C%7B"id"%3A2%2C"ballSize"%3A100%2C"numBalls"%3A30%2C"launchSpeed"%3A100%2C"launchSide"%3A"left"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%2358c56f"%2C"smallBallColor"%3A"%231ee11b"%7D%2C%7B"id"%3A3%2C"ballSize"%3A100%2C"numBalls"%3A100%2C"launchSpeed"%3A15%2C"launchSide"%3A"top"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%23c120ce"%2C"smallBallColor"%3A"%23c547ff"%7D%2C%7B"id"%3A4%2C"ballSize"%3A50%2C"numBalls"%3A20%2C"launchSpeed"%3A50%2C"launchSide"%3A"bottom"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%2317619c"%2C"smallBallColor"%3A"%232646e8"%7D%5D%7D) - Normal speed with multi-directional launches
 
-presets 
-    default presets
-    saving presets
+### PC Preset 2 - Medium Balls with Slow Motion
+[Launch PC Preset 2](https://dant52.github.io/balls/?config=%7B"physics"%3A%7B"gravity"%3A0.4%2C"elasticity"%3A0.6%2C"friction"%3A0.01%2C"darkMode"%3Atrue%2C"slowMotionFactor"%3A0.4%7D%2C"balls"%3A%5B%7B"id"%3A4%2C"ballSize"%3A70%2C"numBalls"%3A100%2C"launchSpeed"%3A160%2C"launchSide"%3A"top"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%235cb6ff"%2C"smallBallColor"%3A"%23395afe"%7D%2C%7B"id"%3A6%2C"ballSize"%3A30%2C"numBalls"%3A30%2C"launchSpeed"%3A80%2C"launchSide"%3A"bottom"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%23cd42ff"%2C"smallBallColor"%3A"%23af53d0"%7D%2C%7B"id"%3A7%2C"ballSize"%3A30%2C"numBalls"%3A20%2C"launchSpeed"%3A100%2C"launchSide"%3A"left"%2C"launchAngle"%3A-20%2C"mainBallColor"%3A"%23153b68"%2C"smallBallColor"%3A"%23eeff00"%7D%2C%7B"id"%3A8%2C"ballSize"%3A30%2C"numBalls"%3A20%2C"launchSpeed"%3A100%2C"launchSide"%3A"right"%2C"launchAngle"%3A-20%2C"mainBallColor"%3A"%2312971a"%2C"smallBallColor"%3A"%2300ff11"%7D%5D%7D) - Slow-motion effect with balanced ball distribution
 
-[{"id":2,"ballSize":100,"numBalls":70,"launchSpeed":15,"launchSide":"left","launchAngle":0,"mainBallColor":"#3128d3","smallBallColor":"#f0e8eb"}]
+### Mobile Preset - Small Balls
+[Launch Mobile Preset](https://dant52.github.io/balls/?config=%7B"physics"%3A%7B"gravity"%3A0.6%2C"elasticity"%3A0.5%2C"friction"%3A0.01%2C"darkMode"%3Atrue%2C"slowMotionFactor"%3A0.6%7D%2C"balls"%3A%5B%7B"id"%3A4%2C"ballSize"%3A40%2C"numBalls"%3A50%2C"launchSpeed"%3A30%2C"launchSide"%3A"top"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%232f6e92"%2C"smallBallColor"%3A"%235cecff"%7D%2C%7B"id"%3A5%2C"ballSize"%3A20%2C"numBalls"%3A2%2C"launchSpeed"%3A80%2C"launchSide"%3A"bottom"%2C"launchAngle"%3A0%2C"mainBallColor"%3A"%2340123e"%2C"smallBallColor"%3A"%2361276d"%7D%2C%7B"id"%3A6%2C"ballSize"%3A20%2C"numBalls"%3A70%2C"launchSpeed"%3A40%2C"launchSide"%3A"left"%2C"launchAngle"%3A-60%2C"mainBallColor"%3A"%23959128"%2C"smallBallColor"%3A"%23effe4d"%7D%2C%7B"id"%3A7%2C"ballSize"%3A20%2C"numBalls"%3A70%2C"launchSpeed"%3A40%2C"launchSide"%3A"right"%2C"launchAngle"%3A-60%2C"mainBallColor"%3A"%23277826"%2C"smallBallColor"%3A"%233ff363"%7D%5D%7D) - Mobile-friendly with smaller balls and higher gravity
