@@ -69,25 +69,3 @@ export function createShareableURL() {
   return window.location.origin + window.location.pathname + '?config=' + encoded;
 }
 
-// Copy the current URL to clipboard
-export function copyURLToClipboard() {
-  const shareableURL = createShareableURL();
-  navigator.clipboard.writeText(shareableURL)
-    .then(() => {
-      // Provide feedback for successful copy
-      const feedbackEl = document.getElementById('share-feedback');
-      if (feedbackEl) {
-        feedbackEl.textContent = "URL copied to clipboard!";
-        feedbackEl.style.opacity = "1";
-        setTimeout(() => {
-          feedbackEl.style.opacity = "0";
-        }, 2000);
-      } else {
-        alert("Settings URL copied to clipboard!");
-      }
-    })
-    .catch(err => {
-      console.error('Could not copy URL: ', err);
-      alert("Failed to copy URL. Please try again.");
-    });
-}

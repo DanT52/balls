@@ -1,6 +1,6 @@
 import { launchMainBall, resetSimulation } from './simulation.js';
 import { isDarkMode, setDarkMode } from './script.js';
-import { getSettingsFromURL, updateURL, applyPhysicsSettings, copyURLToClipboard } from './urlparsing.js';
+import { getSettingsFromURL, updateURL, applyPhysicsSettings} from './urlparsing.js';
 
 // UI elements references
 
@@ -15,7 +15,6 @@ let slowMotionSlider;
 let slowMotionValue;
 let toggleSettingsBtn;
 let togglePhysicsBtn;
-let ballControlsPanel;
 let physicsControlsPanel;
 
 let addBallBtn;
@@ -82,11 +81,6 @@ export function setupUIControls() {
         });
     });
     
-    // Add share button if it exists
-    const shareBtn = document.getElementById('share-btn');
-    if (shareBtn) {
-        shareBtn.addEventListener('click', copyURLToClipboard);
-    }
 }
 
 
@@ -383,17 +377,8 @@ function saveMultiBallSettings() {
 }
 
 // Get current values from UI controls
-export function getUIValues() {
-    
+export function getUIValues() { 
     const values = {
-        numBalls: ballPanels[0]?.settings.numBalls || 70,
-        ballSize: ballPanels[0]?.settings.ballSize || 100,
-        launchSpeed: ballPanels[0]?.settings.launchSpeed || 15,
-        mainBallColor: ballPanels[0]?.settings.mainBallColor || '#FF5252',
-        smallBallColor: ballPanels[0]?.settings.smallBallColor || '#448AFF',
-        launchSide: ballPanels[0]?.settings.launchSide || 'left',
-        launchAngle: ballPanels[0]?.settings.launchAngle || 0,
-
         gravity: parseFloat(gravityInput?.value || 0.3),
         elasticity: parseFloat(elasticityInput?.value || 0.6),
         friction: parseFloat(frictionInput?.value || 0.02),
