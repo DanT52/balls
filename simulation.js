@@ -4,7 +4,7 @@ import { getRandomColor } from './colorUtils.js';
 import { getUIValues, getBalls } from './uiControls.js';
 
 // Create the main ball based on launch side
-export function createMainBall(ballSize, mainBallColor, launchSide) {
+export function createMainBall(ballSize, mainBallColor, launchSide, ballIndex = 0, ballCount = 1) {
     
     const radius = parseInt(ballSize);
     const color = mainBallColor || '#FF5252';
@@ -14,18 +14,42 @@ export function createMainBall(ballSize, mainBallColor, launchSide) {
     switch (launchSide || 'left') {
         case 'left':
             x = radius;
-            y = canvas.height / 2;
+            // If multiple balls on the same side, space them out vertically
+            if (ballCount > 1) {
+                const spacing = (canvas.height - 2 * radius) / (ballCount + 1);
+                y = (ballIndex + 1) * spacing + radius;
+            } else {
+                y = canvas.height / 2;
+            }
             break;
         case 'right':
             x = canvas.width - radius;
-            y = canvas.height / 2;
+            // If multiple balls on the same side, space them out vertically
+            if (ballCount > 1) {
+                const spacing = (canvas.height - 2 * radius) / (ballCount + 1);
+                y = (ballIndex + 1) * spacing + radius;
+            } else {
+                y = canvas.height / 2;
+            }
             break;
         case 'top':
-            x = canvas.width / 2;
+            // If multiple balls on the same side, space them out horizontally
+            if (ballCount > 1) {
+                const spacing = (canvas.width - 2 * radius) / (ballCount + 1);
+                x = (ballIndex + 1) * spacing + radius;
+            } else {
+                x = canvas.width / 2;
+            }
             y = radius;
             break;
         case 'bottom':
-            x = canvas.width / 2;
+            // If multiple balls on the same side, space them out horizontally
+            if (ballCount > 1) {
+                const spacing = (canvas.width - 2 * radius) / (ballCount + 1);
+                x = (ballIndex + 1) * spacing + radius;
+            } else {
+                x = canvas.width / 2;
+            }
             y = canvas.height - radius;
             break;
         default:
@@ -51,7 +75,9 @@ function getOppositeSide(side) {
 export function breakMainBall(currentMainBall) {
     if (!currentMainBall) return;
     
-    const { numBalls, smallBallColor } = getUIValues();
+    // Use ball's own properties for breaking instead of global UI values
+    const numBalls = currentMainBall.numBalls || getUIValues().numBalls;
+    const smallBallColor = currentMainBall.smallBallColor || getUIValues().smallBallColor;
     const smallRadius = currentMainBall.radius / Math.sqrt(numBalls);
     
     // Calculate total energy of the main ball
@@ -69,8 +95,6 @@ export function breakMainBall(currentMainBall) {
             currentMainBall.y, 
             smallRadius,
             getRandomColor(smallBallColor)
-            
-
         );
         
         // Base velocity component from main ball's momentum (scaled by mass)
@@ -232,9 +256,8 @@ export function launchMainBall() {
         cancelAnimationFrame(animationId);
     }
     
-    const { launchSpeed, launchSide, launchAngle, ballSize, mainBallColor, multiBalls } = getUIValues();
-
-    console.log(multiBalls)
+    // Get balls configuration from UI
+    const ballConfigs = getBalls();
     
     // Clear existing main balls
     setMainBalls([]);
@@ -242,61 +265,79 @@ export function launchMainBall() {
     // Always consider simulation to be starting fresh
     setSimulationRunning(true);
     
-    // Get the opposite side for the second ball
-    const oppositeSide = getOppositeSide(launchSide || 'left');
+    // Group balls by sides to handle positioning
+    const sideMap = {};
+    ballConfigs.forEach(config => {
+        const side = config.launchSide || 'left';
+        if (!sideMap[side]) sideMap[side] = [];
+        sideMap[side].push(config);
+    });
     
-    // Create two main balls - one from launch side and one from opposite side
-    const mainBall1 = createMainBall(ballSize, mainBallColor, launchSide);
-    const mainBall2 = createMainBall(ballSize, mainBallColor, oppositeSide);
-    
-    if (!mainBall1 || !mainBall2) {
-        console.error("Failed to create main balls");
-        return;
-    }
-    
-    // Store the launch sides on the ball objects for reference
-    mainBall1.launchSide = launchSide || 'left';
-    mainBall2.launchSide = oppositeSide;
-    
-    // Add both balls to the mainBalls array
-    addMainBall(mainBall1);
-    addMainBall(mainBall2);
-    
-    // Convert angle from degrees to radians
-    const angleRad = (launchAngle * Math.PI) / 180;
-    const actualSpeed = parseInt(launchSpeed) || 10;
-
-    // Set velocity for each main ball based on its launch side
-    mainBalls.forEach((mainBall) => {
-        switch (mainBall.launchSide) {
+    // Create all the main balls
+    ballConfigs.forEach(config => {
+        const { ballSize, mainBallColor, launchSide, numBalls, smallBallColor, 
+                launchSpeed, launchAngle } = config;
+        
+        // Get the count of balls on this side for positioning
+        const sideCount = sideMap[launchSide || 'left'].length;
+        const ballIndex = sideMap[launchSide || 'left'].indexOf(config);
+        
+        // Create the ball with proper positioning
+        const newBall = createMainBall(
+            ballSize, 
+            mainBallColor, 
+            launchSide,
+            ballIndex,
+            sideCount
+        );
+        
+        if (!newBall) {
+            console.error("Failed to create main ball");
+            return;
+        }
+        
+        // Store the launch side and other properties on the ball object
+        newBall.launchSide = launchSide || 'left';
+        newBall.numBalls = numBalls;
+        newBall.smallBallColor = smallBallColor;
+        
+        // Add ball to the mainBalls array
+        addMainBall(newBall);
+        
+        // Convert angle from degrees to radians
+        const angleRad = (launchAngle * Math.PI) / 180;
+        const actualSpeed = parseInt(launchSpeed) || 10;
+        
+        // Set velocity based on launch side
+        switch (newBall.launchSide) {
             case 'left':
                 // From left: 0° is right, -90° is up, 90° is down
-                mainBall.vx = actualSpeed * Math.cos(angleRad);
-                mainBall.vy = actualSpeed * Math.sin(angleRad);
+                newBall.vx = actualSpeed * Math.cos(angleRad);
+                newBall.vy = actualSpeed * Math.sin(angleRad);
                 break;
             case 'right':
                 // From right: 0° is left, -90° is up, 90° is down
-                mainBall.vx = -actualSpeed * Math.cos(angleRad);
-                mainBall.vy = actualSpeed * Math.sin(angleRad);
+                newBall.vx = -actualSpeed * Math.cos(angleRad);
+                newBall.vy = actualSpeed * Math.sin(angleRad);
                 break;
             case 'top':
                 // From top: 0° is down, -90° is left, 90° is right
-                mainBall.vx = actualSpeed * Math.sin(angleRad);
-                mainBall.vy = actualSpeed * Math.cos(angleRad);
+                newBall.vx = actualSpeed * Math.sin(angleRad);
+                newBall.vy = actualSpeed * Math.cos(angleRad);
                 break;
             case 'bottom':
                 // From bottom: 0° is up, -90° is left, 90° is right
-                mainBall.vx = actualSpeed * Math.sin(angleRad);
-                mainBall.vy = -actualSpeed * Math.cos(angleRad);
+                newBall.vx = actualSpeed * Math.sin(angleRad);
+                newBall.vy = -actualSpeed * Math.cos(angleRad);
                 break;
             default:
                 // Default to left side launch
-                mainBall.vx = actualSpeed;
-                mainBall.vy = 0;
+                newBall.vx = actualSpeed;
+                newBall.vy = 0;
         }
     });
     
-    // Start the animation immediately (no need for double click)
+    // Start the animation immediately
     lastTimestamp = 0; // Reset timestamp
     animate();
 }

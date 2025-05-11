@@ -372,6 +372,7 @@ function saveMultiBallSettings() {
 
 // Get current values from UI controls
 export function getUIValues() {
+    
     const values = {
         numBalls: ballPanels[0]?.settings.numBalls || 70,
         ballSize: ballPanels[0]?.settings.ballSize || 100,
@@ -393,7 +394,7 @@ export function getUIValues() {
 }
 
 export function getBalls() {
-    return ballPanels.map(panel => panel.settings)
+    return ballPanels.map(panel => panel.settings);
 }
 
 // Load saved settings from localStorage
